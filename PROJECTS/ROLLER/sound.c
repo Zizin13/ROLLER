@@ -73,7 +73,9 @@ int x2ok = 0;               //000A4A38
 int y2ok = 0;               //000A4A3C
 int bitaccept = 0;          //000A4A40
 int holdmusic = 0;          //000A4A4C
+int start_cd;               //0013FA9C 
 uint8 unmangleinbuf[1024];  //00149EF0
+uint8_t *musicbuffer;       //0014EBF8
 int lastvolume[16];         //001603F8
 int lastpitch[16];          //00160438
 int lastpan[16];            //00160478
@@ -1359,6 +1361,8 @@ void play()
 {
   if (musicon) {
     if (SongPtr) {
+      MIDIStartSong();
+
       //InitSong.nSection = __DS__;
       //InitSong.pData = (void *)SongPtr;
       //InitSong.nUnk2 = 0;
@@ -1374,6 +1378,7 @@ void stop()
 {
   if (MusicCard) {
     if (SongPtr) {
+      MIDIStopSong();
       //sosMIDIStopSong(SongHandle);
       //sosMIDIResetSong(SongHandle);
     }
@@ -3175,9 +3180,69 @@ void enginesound(int a1, float a2, float a3, float a4, int a5)
 
 //-------------------------------------------------------------------------------------------------
 
-int startmusic(int result)
+void startmusic(int iSong)
 {
-  return 0; /*
+  int musicOrTitle = 0;
+  if (MusicCD && track_playing) {
+    StopTrack();
+  } else if (MusicCard && SongPtr) {
+    stop();
+    // sosMIDIUnInitSong(SongHandle);
+    SongPtr = 0;
+  }
+
+  if (musicon)
+    MIDISetMasterVolume(MusicVolume);
+
+  if (MusicCD)
+    SetAudioVolume(MusicVolume);
+
+  int iMusic; // Index of the music track to play
+  if (iSong >= 0) {
+    musicOrTitle = -1;
+    iMusic = (nummusictracks + iSong - 1) % nummusictracks;
+  } else {
+    iMusic = -iSong;
+  }
+
+  // int audioInfo;
+  int cdSongId; // Track ID for CD audio
+  if (MusicCD && musicon) {
+    ResetDrive();
+    //GetAudioInfo(audioInfo, iMusic, musicOrTitle, MusicCD);
+    if (cd_cheat) {
+      cdSongId = cd_cheat;
+    } else {
+      if (musicOrTitle) {
+        PlayTrack4(CDSong[iMusic]);
+        start_cd = frames;
+        return;
+      }
+      cdSongId = CDSong[iMusic];
+    }
+    PlayTrack(cdSongId);
+    start_cd = frames;
+    return;
+  }
+
+  if (musicon) {
+    uint32_t musiclength;
+    loadfile((const char *)&Song[GMSong[iMusic]], (void *)&musicbuffer, &musiclength, 0);
+    SongPtr = (int)&musicbuffer;
+    if (&musicbuffer) {
+      // Init song in the MIDI system
+      tInitSong InitSong = {
+        .pData = (void *)musicbuffer,
+        .iLength = musiclength,
+      };
+      MIDIInitSong(&InitSong);
+      free(musicbuffer);
+
+      // Play the song in the MIDI system
+      MIDIStartSong();
+    }
+  }
+  /*
   int v1; // edx
   int v2; // ebx
   int v3; // edx
@@ -3259,6 +3324,7 @@ void stopmusic()
       if (SongPtr) {
         //sosMIDIStopSong(SongHandle);
         //sosMIDIResetSong(SongHandle);
+        MIDIStopSong();
       }
     }
     //sosMIDIUnInitSong(*(unsigned int *)&SongHandle);

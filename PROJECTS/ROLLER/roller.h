@@ -19,11 +19,17 @@ int InitSDL();
 void ShutdownSDL();
 void UpdateSDL();
 
-bool MIDIDigi_Init(const char *config_file);
+bool MIDI_Init(const char *config_file);
 void MIDIDigi_PlayBuffer(uint8 *midi_buffer, uint32 midi_length);
 void MIDIDigi_ClearBuffer();
-void MIDIDigi_Shutdown();
-void MIDISetMasterVolume(int volume);
+void MIDI_CloseMidiBuffer();
+void MIDI_Shutdown();
+
+void MIDIInitSong(tInitSong *data);
+void MIDIStartSong();
+void MIDIStopSong();
+
+void MIDISetMasterVolume(int8 volume);
 int MIDIGetMasterVolume();
 
 int DIGISampleStart(tSampleData *data);

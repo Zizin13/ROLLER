@@ -193,6 +193,16 @@ typedef struct
 
 typedef struct
 {
+  void *pData;
+  int nUnk2;
+  int iUnk1;
+  int iLength; // add by ROLLER: length of the data song in bytes
+} tInitSong;
+
+//-------------------------------------------------------------------------------------------------
+
+typedef struct
+{
   int iEnginePitch;   //ENGINE.RAW
   int iEngineVol;
   int iEngine2Pitch;  //ENGINE2.RAW
@@ -395,7 +405,7 @@ int enginesounds2(int result, int a2);
 int enginesounds(int result);
 void loopsample(int iCarIdx, int iSampleIdx, int iVolume, int iPitch, int iPan);
 void enginesound(int a1, float a2, float a3, float a4, int a5);
-int startmusic(int result);
+void startmusic(int iSong);
 void stopmusic();
 void load_language_map();
 void initmusic();

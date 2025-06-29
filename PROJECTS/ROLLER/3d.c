@@ -1751,7 +1751,11 @@ int champion_race()
 //-------------------------------------------------------------------------------------------------
 
 void play_game(int a1, int a2, int a3)
-{/*
+{
+#if _DEBUG
+  startmusic(titlesong); // Add by ROLLER to start music in debug mode
+#endif
+  /*
   int v3; // eax
   int v4; // ecx
   int v5; // edx
